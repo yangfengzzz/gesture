@@ -30,9 +30,14 @@ def get_args():
 
 
 def main():
+    # init global vars
+    global gesture_buffer
+    global gesture_id
+
+    WRITE_CONTROL = False
+
     # Argument parsing
     args = get_args()
-
     cap_device = args.device
     cap_width = args.width
     cap_height = args.height
@@ -59,11 +64,19 @@ def main():
         if key == 27:  # ESC
             break
         if key == 110:  # n
+            WRITE_CONTROL = False
             mode = 0
         if key == 107:  # k
+            WRITE_CONTROL = True
             mode = 1
         if key == 104:  # h
+            WRITE_CONTROL = True
             mode = 2
+
+        if WRITE_CONTROL:
+            number = -1
+            if 48 <= key <= 57:  # 0 ~ 9
+                number = key - 48
 
         ret, image = cap.read()
         if not ret:
@@ -79,6 +92,7 @@ def main():
 
     cap.release()
     cv.destroyAllWindows()
+
 
 if __name__ == '__main__':
     main()
