@@ -1,6 +1,8 @@
 import configargparse
+import cv2 as cv
 
-from gesture_recognition import *
+from gesture_recognition import GestureRecognition, GestureBuffer
+from go2_controller import Go2Controller
 from utils import CvFpsCalc
 
 
@@ -53,6 +55,8 @@ def main():
     # FPS Measurement
     cv_fps_calc = CvFpsCalc(buffer_len=10)
 
+    # Controller
+    controller = Go2Controller()
     mode = 0
     number = -1
 
@@ -84,6 +88,7 @@ def main():
 
         debug_image, gesture_id = gesture_detector.recognize(image, number, mode)
         gesture_buffer.add_gesture(gesture_id)
+        controller.control(gesture_buffer)
 
         debug_image = gesture_detector.draw_info(debug_image, fps, mode, number)
 
