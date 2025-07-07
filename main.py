@@ -1,43 +1,81 @@
-import cv2
-import mediapipe as mp
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
-from mediapipe.framework.formats import landmark_pb2
+import configargparse
 
-# STEP 2: Create an GestureRecognizer object.
-base_options = python.BaseOptions(model_asset_path='gesture_recognizer.task')
-options = vision.GestureRecognizerOptions(base_options=base_options)
-recognizer = vision.GestureRecognizer.create_from_options(options)
+from gesture_recognition import *
+from utils import CvFpsCalc
 
-mp_hands = mp.solutions.hands
-mp_drawing = mp.solutions.drawing_utils
-mp_drawing_styles = mp.solutions.drawing_styles
 
-# 创建视频捕获对象（0表示默认摄像头）
-cap = cv2.VideoCapture(8)
+def get_args():
+    print('## Reading configuration ##')
+    parser = configargparse.ArgParser(default_config_files=['config.txt'])
 
-while True:
-    # 逐帧捕获视频
-    ret, frame = cap.read()
+    parser.add('-c', '--my-config', required=False, is_config_file=True, help='config file path')
+    parser.add("--device", type=int)
+    parser.add("--width", help='cap width', type=int)
+    parser.add("--height", help='cap height', type=int)
+    parser.add("--is_keyboard", help='To use Keyboard control by default', type=bool)
+    parser.add('--use_static_image_mode', action='store_true', help='True if running on photos')
+    parser.add("--min_detection_confidence",
+               help='min_detection_confidence',
+               type=float)
+    parser.add("--min_tracking_confidence",
+               help='min_tracking_confidence',
+               type=float)
+    parser.add("--buffer_len",
+               help='Length of gesture buffer',
+               type=int)
 
-    if not ret:
-        print("无法获取视频帧")
-        break
+    args = parser.parse_args()
 
-    # STEP 3: Load the input image.
-    image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
+    return args
 
-    # STEP 4: Recognize gestures in the input image.
-    recognition_result = recognizer.recognize(image)
-    print(recognition_result)
 
-    # 显示结果帧
-    cv2.imshow('Camera Feed', frame)
+def main():
+    # Argument parsing
+    args = get_args()
 
-    # 按q键退出循环
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    cap_device = args.device
+    cap_width = args.width
+    cap_height = args.height
 
-# 释放资源
-cap.release()
-cv2.destroyAllWindows()
+    cap = cv.VideoCapture(cap_device)
+    cap.set(cv.CAP_PROP_FRAME_WIDTH, cap_width)
+    cap.set(cv.CAP_PROP_FRAME_HEIGHT, cap_height)
+
+    gesture_detector = GestureRecognition(args.use_static_image_mode, args.min_detection_confidence,
+                                          args.min_tracking_confidence)
+    gesture_buffer = GestureBuffer(buffer_len=args.buffer_len)
+
+    # FPS Measurement
+    cv_fps_calc = CvFpsCalc(buffer_len=10)
+
+    mode = 0
+    number = -1
+
+    while True:
+        fps = cv_fps_calc.get()
+
+        # Process Key (ESC: end)
+        key = cv.waitKey(1) & 0xff
+        if key == 27:  # ESC
+            break
+        if key == 110:  # n
+            mode = 0
+        if key == 107:  # k
+            mode = 1
+        if key == 104:  # h
+            mode = 2
+
+        ret, image = cap.read()
+        if not ret:
+            break
+
+        debug_image, gesture_id = gesture_detector.recognize(image, number, mode)
+        gesture_buffer.add_gesture(gesture_id)
+
+        debug_image = gesture_detector.draw_info(debug_image, fps, mode, number)
+
+        # Image rendering
+        cv.imshow('Hand Gesture Recognition', debug_image)
+
+    cap.release()
+    cv.destroyAllWindows()
