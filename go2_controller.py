@@ -1,0 +1,3 @@
+class Go2Controller:
+    def __init__(self):
+        ...
