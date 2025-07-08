@@ -395,6 +395,7 @@ class GestureRecognition:
         if results.multi_hand_landmarks is not None:
             for hand_landmarks, handedness in zip(results.multi_hand_landmarks,
                                                   results.multi_handedness):
+                print(handedness.classification[0].index)
                 # Bounding box calculation
                 brect = self._calc_bounding_rect(debug_image, hand_landmarks)
                 # Landmark calculation
@@ -443,6 +444,10 @@ class GestureRecognition:
                 # Saving gesture
                 if (gesture_id == 0 and hand_sign_id == 1) or (gesture_id == 1 and hand_sign_id == 0):
                     gesture_id = 5 # forward + stop = back
+                elif (handedness.classification[0].index == 0) and (hand_sign_id == 3):
+                    gesture_id = 3
+                elif (handedness.classification[0].index == 1) and (hand_sign_id == 3):
+                    gesture_id = 8
                 else:
                     gesture_id = hand_sign_id
 

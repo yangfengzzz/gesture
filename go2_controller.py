@@ -35,8 +35,10 @@ class Go2Controller:
         elif gesture_id == 4:  # DOWN
             self.sport_client.Sit()
 
-        elif gesture_id == 3:  # LAND
-            ...
+        elif gesture_id == 3:  # LEFT LAND
+            self.sport_client.Dance1()
+        elif gesture_id == 8:  # RIGHT LAND
+            self.sport_client.Heart()
 
         elif gesture_id == 6: # LEFT
             self.sport_client.Move(0, 0, 0.6)
