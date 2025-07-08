@@ -39,9 +39,9 @@ class Go2Controller:
             ...
 
         elif gesture_id == 6: # LEFT
-            self.sport_client.Move(0, -0.3,0)
+            self.sport_client.Move(0, 0, 0.6)
         elif gesture_id == 7: # RIGHT
-            self.sport_client.Move(0, 0.3,0)
+            self.sport_client.Move(0, 0, -0.6)
 
         elif gesture_id == -1:
             ...

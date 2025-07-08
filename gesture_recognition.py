@@ -33,7 +33,7 @@ class GestureRecognition:
         mp_hands = mp.solutions.hands
         hands = mp_hands.Hands(
             static_image_mode=self.use_static_image_mode,
-            max_num_hands=1,
+            max_num_hands=2,
             min_detection_confidence=self.min_detection_confidence,
             min_tracking_confidence=self.min_tracking_confidence,
         )
@@ -441,7 +441,11 @@ class GestureRecognition:
                 )
 
                 # Saving gesture
-                gesture_id = hand_sign_id
+                if (gesture_id == 0 and hand_sign_id == 1) or (gesture_id == 1 and hand_sign_id == 0):
+                    gesture_id = 5 # forward + stop = back
+                else:
+                    gesture_id = hand_sign_id
+
         else:
             self.point_history.append([0, 0])
 
